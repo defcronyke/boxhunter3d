@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as Ammo from 'ammojs';
+import * as Ammo from 'ammo.js';
 
 export default class Game {
   constructor(container) {
