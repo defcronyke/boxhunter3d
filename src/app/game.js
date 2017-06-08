@@ -5,27 +5,75 @@ export default class Game {
   constructor(container) {
     console.log('game started');
 
+    document.addEventListener('keydown', e => {
+      // console.log('keyCode: ', e.keyCode);
+      this.speed = 1;
+      this.speedX = 0;
+      this.speedY = 0;
+      this.speedZ = 0;
+
+      if (e.keyCode === 87) { // W
+        this.speedZ = -this.speed;
+      }
+
+      if (e.keyCode === 83) { // S
+        this.speedZ = this.speed;
+      }
+
+      if (e.keyCode === 65) { // A
+        this.speedX = -this.speed;
+      }
+
+      if (e.keyCode === 68) { // D
+        this.speedX = this.speed;
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (e.keyCode === 87) { // W
+        this.speedZ = 0;
+      }
+
+      if (e.keyCode === 83) { // S
+        this.speedZ = 0;
+      }
+
+      if (e.keyCode === 65) { // A
+        this.speedX = 0;
+      }
+
+      if (e.keyCode === 68) { // D
+        this.speedX = 0;
+      }
+    });
+
     this.step = () => {
       this.renderer.render(this.scene, this.camera);
       this.stepPhysics();
+      this.move();
       requestAnimationFrame(this.step);
     };
 
     this.stepPhysics = () => {
-      const trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
-
       this.dynamicsWorld.stepSimulation(1 / 60, 10);
 
       this.meshes.forEach(mesh => {
         if (mesh.body.getMotionState()) {
-          mesh.body.getMotionState().getWorldTransform(trans);
+          mesh.body.getMotionState().getWorldTransform(this.trans);
           mesh.position.set(
-            trans.getOrigin().x().toFixed(2),
-            trans.getOrigin().y().toFixed(2),
-            trans.getOrigin().z().toFixed(2)
+            this.trans.getOrigin().x().toFixed(2),
+            this.trans.getOrigin().y().toFixed(2),
+            this.trans.getOrigin().z().toFixed(2)
           );
         }
       });
+    };
+
+    this.move = () => {
+      if (this.speedX === 0 && this.speedY === 0 && this.speedZ === 0) {
+        return;
+      }
+      this.sphere.body.applyCentralImpulse(new Ammo.btVector3(this.speedX, this.speedY, this.speedZ));
     };
 
     this.init(container);
@@ -56,6 +104,7 @@ export default class Game {
     this.dynamicsWorld = new Ammo.btDiscreteDynamicsWorld(this.dispatcher, this.overlappingPairCache, this.solver, this.collisionConfiguration);
     this.dynamicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
     this.meshes = [];
+    this.trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
   }
 
   addCamera() {
@@ -125,18 +174,22 @@ export default class Game {
     const radius = 1;
     const segments = 16;
     const rings = 16;
-    const sphere = new THREE.Mesh(
+
+    // const loader = new THREE.TextureLoader();
+    // loader.load('assets/img/playerTexture.jpg', texture => {
+    this.sphere = new THREE.Mesh(
       new THREE.SphereGeometry(
         radius,
         segments,
         rings
       ),
       new THREE.MeshLambertMaterial({
+        // map: texture
         color: 0xcc0000
       })
     );
-    sphere.position.y = 4;
-    this.scene.add(sphere);
+    this.sphere.position.y = 4;
+    this.scene.add(this.sphere);
 
     const colShape = new Ammo.btSphereShape(1);
     const startTransform = new Ammo.btTransform();
@@ -155,9 +208,9 @@ export default class Game {
 
     const myMotionState = new Ammo.btDefaultMotionState(startTransform);
     const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-    sphere.body = new Ammo.btRigidBody(rbInfo);
+    this.sphere.body = new Ammo.btRigidBody(rbInfo);
 
-    this.dynamicsWorld.addRigidBody(sphere.body);
-    this.meshes.push(sphere);
+    this.dynamicsWorld.addRigidBody(this.sphere.body);
+    this.meshes.push(this.sphere);
   }
 }
