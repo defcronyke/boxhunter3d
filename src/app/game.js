@@ -5,6 +5,10 @@ export default class Game {
   constructor(container) {
     console.log('game started');
 
+    this.speedX = 0;
+    this.speedY = 0;
+    this.speedZ = 0;
+
     document.addEventListener('keydown', e => {
       // console.log('keyCode: ', e.keyCode);
       this.speed = 1;
