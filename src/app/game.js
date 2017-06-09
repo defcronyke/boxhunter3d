@@ -11,25 +11,25 @@ export default class Game {
 
     document.addEventListener('keydown', e => {
       // console.log('keyCode: ', e.keyCode);
-      this.speed = 0.01;
+      this.speed = 0.1;
       this.speedX = 0;
       this.speedY = 0;
       this.speedZ = 0;
 
       if (e.keyCode === 87) { // W
-        this.speedZ = -this.speed;
-      }
-
-      if (e.keyCode === 83) { // S
         this.speedZ = this.speed;
       }
 
+      if (e.keyCode === 83) { // S
+        this.speedZ = -this.speed;
+      }
+
       if (e.keyCode === 65) { // A
-        this.speedX = -this.speed;
+        this.speedX = this.speed;
       }
 
       if (e.keyCode === 68) { // D
-        this.speedX = this.speed;
+        this.speedX = -this.speed;
       }
     });
 
@@ -90,6 +90,8 @@ export default class Game {
         return;
       }
       console.log(this.speedX, this.speedY, this.speedZ);
+      console.log(this.sphere.body.getPosition());
+      // console.log(this.sphere.body.position.x);
       // this.sphere.position.y = -this.sphere.position.y
       // console.log(this.sphere.body.position);
       // this.sphere.body.setPosition({
@@ -97,8 +99,9 @@ export default class Game {
       //   y: this.sphere.body.position.y + this.speedY,
       //   z: this.sphere.body.position.z + this.speedZ
       // });
-      // this.sphere.body.setPosition(new OIMO.Vec3(this.speedX, this.speedY, this.speedZ));
-      this.sphere.body.applyImpulse(new OIMO.Vec3(this.speedX, this.speedY, this.speedZ), this.sphere.body.position);
+      this.sphere.body.linearVelocity.scaleEqual(0.01);
+      this.sphere.body.angularVelocity.scaleEqual(0.01);
+      this.sphere.body.applyImpulse({x: this.speedX, y: this.speedY, z: this.speedZ}, this.sphere.body.getPosition());
       // this.sphere.body.applyCentralImpulse(new Ammo.btVector3(this.speedX, this.speedY, this.speedZ));
     };
 
@@ -131,7 +134,7 @@ export default class Game {
       random: true
       // info: true      // display statistics
     });
-    this.world.gravity = new OIMO.Vec3(0, -10, 0);
+    this.world.gravity = new OIMO.Vec3(0, -50, 0);
     this.meshes = [];
     // this.collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
     // this.dispatcher = new Ammo.btCollisionDispatcher(this.collisionConfiguration);
@@ -188,7 +191,9 @@ export default class Game {
       pos: [0, y, 0],
       density: 1,
       belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-      collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+      collidesWith: 0xffffffff, // The bits of the collision groups with which the shape collides.
+      friction: 0.4,
+      restitution: 0.2
     });
 
     // const groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
@@ -241,7 +246,10 @@ export default class Game {
       pos: [0, 10, 0],
       move: true,
       belongsTo: 1, // The bits of the collision groups to which the shape belongs.
-      collidesWith: 0xffffffff // The bits of the collision groups with which the shape collides.
+      collidesWith: 0xffffffff, // The bits of the collision groups with which the shape collides.
+      friction: 0.4,
+      restitution: 0.2,
+      density: 1
     });
 
     this.meshes.push(this.sphere);
