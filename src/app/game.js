@@ -9,7 +9,7 @@ export default class Game {
     this.speedZ = 0;
 
     window.addEventListener('keydown', e => {
-      // console.log('keyCode: ', e.keyCode);
+      console.log('keyCode: ', e.keyCode);
       this.speed = 1;
       this.speedX = 0;
       this.speedY = 0;
@@ -29,6 +29,10 @@ export default class Game {
 
       if (e.keyCode === 68) { // D
         this.speedX = this.speed;
+      }
+
+      if (e.keyCode === 78) { // N
+        this.addSphere();
       }
     });
 
@@ -62,12 +66,15 @@ export default class Game {
     };
 
     this.move = () => {
-      this.drag = 0.98;
-      const angVel = this.sphere.physicsImpostor.getAngularVelocity();
-      angVel.x *= this.drag;
-      angVel.y *= this.drag;
-      angVel.z *= this.drag;
-      this.sphere.physicsImpostor.setAngularVelocity(angVel);
+      this.drag = 0.9;
+      if (this.sphere.position.y >= this.lastY) {
+        const angVel = this.sphere.physicsImpostor.getAngularVelocity();
+        angVel.x *= this.drag;
+        angVel.y *= this.drag;
+        angVel.z *= this.drag;
+        this.sphere.physicsImpostor.setAngularVelocity(angVel);
+      }
+      this.lastY = this.sphere.position.y;
 
       if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
         return;
@@ -104,6 +111,7 @@ export default class Game {
     this.addCamera();
     this.addLight();
     this.addGround();
+    this.addTriangularPrism();
     this.addSphere();
   }
 
@@ -131,11 +139,29 @@ export default class Game {
   addSphere() {
     this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, this.scene);
     this.sphere.position.y = 30;
+    this.lastY = this.sphere.position.y;
     this.sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
       this.sphere,
       BABYLON.PhysicsImpostor.SphereImpostor,
       {mass: 1, restitution: 0.4, friction: 1},
       this.scene
     );
+  }
+
+  addTriangularPrism() {
+    const prism = BABYLON.MeshBuilder.CreatePolyhedron('triangularPrism1', {type: 5, size: 3}, this.scene);
+    // prism.position.y = 10;
+    // console.log('rotation: ', prism.rotation);
+    prism.rotation = new BABYLON.Vector3(-45 * Math.PI / 180, 0 * Math.PI / 180, -45 * Math.PI / 180);
+    prism.impostor1 = new BABYLON.PhysicsImpostor(
+      prism,
+      BABYLON.PhysicsImpostor.MeshImpostor,
+      {mass: 0, restitution: 0.4, friction: 1},
+      this.scene
+    );
+    // prism.rotate(BABYLON.Axis.X, (-45 * Math.PI) / 180, BABYLON.Space.LOCAL);
+    // prism.rotate(BABYLON.Axis.Y, (45 * Math.PI) / 4, BABYLON.Space.LOCAL);
+    // prism.rotate(BABYLON.Axis.Z, (45 * Math.PI) / 180, BABYLON.Space.LOCAL);
+    // prism.impostor1 =
   }
 }
