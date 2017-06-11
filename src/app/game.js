@@ -9,8 +9,8 @@ export default class Game {
     this.speedZ = 0;
 
     window.addEventListener('keydown', e => {
-      console.log('keyCode: ', e.keyCode);
-      this.speed = 0.7;
+      // console.log('keyCode: ', e.keyCode);
+      this.speed = 0.5;
       this.speedX = 0;
       this.speedY = 0;
       this.speedZ = 0;
@@ -67,21 +67,27 @@ export default class Game {
 
     this.move = () => {
       this.drag = 0.98;
-      if (this.sphere.position.y >= this.lastY) {
-        const angVel = this.sphere.physicsImpostor.getAngularVelocity();
-        angVel.x *= this.drag;
-        angVel.y *= this.drag;
-        angVel.z *= this.drag;
-        this.sphere.physicsImpostor.setAngularVelocity(angVel);
-      }
-      this.lastY = this.sphere.position.y;
+      if (this.sphere) {
+        if (this.sphere.position.y >= this.lastY) {
+          const angVel = this.sphere.physicsImpostor.getAngularVelocity();
+          angVel.x *= this.drag;
+          angVel.y *= this.drag;
+          angVel.z *= this.drag;
+          this.sphere.physicsImpostor.setAngularVelocity(angVel);
+        }
+        this.lastY = this.sphere.position.y;
 
-      if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
-        return;
-      }
+        // this.camera.position.x = this.sphere.position.x;
+        // this.camera.position.y = this.sphere.position.y + 1;
+        // this.camera.position.z = this.sphere.position.z - 30;
 
-      console.log(this.speedX, this.speedY, this.speedZ);
-      this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
+        if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
+          return;
+        }
+
+        // console.log(this.speedX, this.speedY, this.speedZ);
+        this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
+      }
     };
 
     this.init(container);
@@ -101,7 +107,7 @@ export default class Game {
 
   initPhysics() {
     // const grav = -9.81;
-    const grav = -30;
+    const grav = -28;
     this.gravity = new BABYLON.Vector3(0, grav, 0);
     this.physics = new BABYLON.CannonJSPlugin();
   }
@@ -113,13 +119,11 @@ export default class Game {
     this.scene.collisionsEnabled = true;
     this.addCamera();
     this.addLight();
-    this.addGround();
-    this.addTriangularPrism();
-    this.addSphere();
+    this.level1();
   }
 
   addCamera() {
-    this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 5, -60), this.scene);
+    this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 10, -60), this.scene);
     this.camera.setTarget(BABYLON.Vector3.Zero());
     this.camera.attachControl(this.container);
   }
@@ -130,22 +134,6 @@ export default class Game {
   }
 
   addGround() {
-    // this.ground = BABYLON.Mesh.CreateSphere('ground1', 16, 10, this.scene);
-    // console.log('ground: ', this.ground);
-    // // this.ground.diameterY = 1;
-    // // this.ground.scaling.x = 100;
-    // // this.ground.scaling.z = 100;
-    //
-    // this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-    //   this.ground,
-    //   BABYLON.PhysicsImpostor.SphereImpostor,
-    //   {mass: 0, restitution: 0.4, friction: 1},
-    //   this.scene
-    // );
-    // this.ground.scaling.y = 0.1;
-    // this.ground.physicsImpostor.setScalingUpdated(true);
-    // this.ground.physicsImpostor.forceUpdate();
-    // this.ground.physicsImpostor.scaling.y = 0.1;
     this.ground = BABYLON.Mesh.CreateGround('ground1', 100, 100, 2, this.scene);
     this.ground.checkCollisions = true;
     this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
@@ -200,5 +188,21 @@ export default class Game {
     // prism.rotate(BABYLON.Axis.X, (-45 * Math.PI) / 180, BABYLON.Space.LOCAL);
     // prism.rotate(BABYLON.Axis.Y, (45 * Math.PI) / 4, BABYLON.Space.LOCAL);
     // prism.rotate(BABYLON.Axis.Z, (45 * Math.PI) / 180, BABYLON.Space.LOCAL);
+  }
+
+  level1() {
+    const groundMat1 = new BABYLON.StandardMaterial('groundMat1', this.scene);
+    groundMat1.diffuseTexture = new BABYLON.Texture('assets/img/gridPattern1.jpg', this.scene);
+    this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', 'assets/img/gridPattern1.jpg', 100, 100, 250, 0, 1, this.scene, false, () => {
+      this.ground.material = groundMat1;
+      this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+        this.ground,
+        BABYLON.PhysicsImpostor.HeightmapImpostor,
+        {mass: 0, restitution: 0.4, friction: 1},
+        this.scene
+      );
+      this.addTriangularPrism();
+      this.addSphere();
+    });
   }
 }
