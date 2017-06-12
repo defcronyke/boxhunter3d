@@ -193,7 +193,7 @@ export default class Game {
     this.camera.setTarget(this.sphere.position);
   }
 
-  addBox(size, pos, mass, friction, restitution) {
+  addBox(size, pos, mass, friction, restitution, texture) {
     const box = BABYLON.MeshBuilder.CreateBox('box', {depth: size.x, width: size.y, height: size.z});
     box.position = pos;
     box.impostor = new BABYLON.PhysicsImpostor(
@@ -202,6 +202,11 @@ export default class Game {
       {mass, restitution, friction},
       this.scene
     );
+    if (texture) {
+      const material = new BABYLON.StandardMaterial('boxMat', this.scene);
+      material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
+      box.material = material;
+    }
     this.sceneObjects.push(box);
   }
 
