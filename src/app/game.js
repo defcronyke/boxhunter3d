@@ -1,16 +1,13 @@
+/* eslint-disable no-alert, max-params */
 import BABYLON from 'babylonjs/dist/preview release/babylon.max.js';
+import CANNON from 'cannon';
+import Level1 from './levels/level1';
 
 export default class Game {
   constructor(container) {
-    console.log('game started');
-
-    this.speedX = 0;
-    this.speedY = 0;
-    this.speedZ = 0;
     this.level = 1;
-    // this.levelStartPos = [
-    //   new BABYLON.Vector3(0, 30, -40) // 1
-    // ];
+    this.container = container;
+    console.log('game started');
 
     window.addEventListener('keydown', e => {
       // console.log('keyCode: ', e.keyCode);
@@ -36,11 +33,10 @@ export default class Game {
       }
 
       if (e.keyCode === 78) { // N
-        // console.log(this.levelStartPos[this.level - 1]);
         let pos = new BABYLON.Vector3.Zero();
         switch (this.level) {
           case 1:
-            pos = new BABYLON.Vector3(0, 30, -40);
+            pos = new BABYLON.Vector3(0, 10, -40);
             break;
           default:
         }
@@ -73,6 +69,9 @@ export default class Game {
     this.step = () => {
       this.engine.runRenderLoop(() => {
         this.scene.render();
+        if (!this.checkGoalBoxCollision()) {
+          return;
+        }
         this.move();
       });
     };
@@ -97,19 +96,29 @@ export default class Game {
         if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
           return;
         }
-
-        // console.log(this.speedX, this.speedY, this.speedZ);
         this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
       }
     };
+
+    this.levels = [
+      new Level1(this)
+    ];
 
     this.init(container);
   }
 
   init(container) {
+    console.log('level ' + this.level + ' started');
+    this.speedX = 0;
+    this.speedY = 0;
+    this.speedZ = 0;
+    this.sceneObjects = [];
+    this.goalBoxSettled = false;
     this.initGraphics(container);
     this.initPhysics();
-    this.createScene();
+    if (!this.createScene()) {
+      return;
+    }
     this.step();
   }
 
@@ -120,7 +129,6 @@ export default class Game {
 
   initPhysics() {
     const grav = -9.81;
-    // const grav = -28;
     this.gravity = new BABYLON.Vector3(0, grav, 0);
     this.physics = new BABYLON.CannonJSPlugin();
   }
@@ -129,10 +137,16 @@ export default class Game {
     this.scene = new BABYLON.Scene(this.engine);
     this.scene.clearColor = new BABYLON.Color3(0.2, 0.5, 0.5);
     this.scene.enablePhysics(this.gravity, this.physics);
-    this.scene.collisionsEnabled = true;
+    this.scene.getPhysicsEngine().getPhysicsPlugin().world.allowSleep = true;
     this.addCamera();
     this.addLight();
-    this.level1();
+
+    if (this.level > this.levels.length) {
+      alert('Congratulations, you beat the game!');
+      return false;
+    }
+    this.levels[this.level - 1].start();
+    return true;
   }
 
   addCamera() {
@@ -151,73 +165,90 @@ export default class Game {
     this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
       this.ground,
       BABYLON.PhysicsImpostor.BoxImpostor,
-      {mass: 0, restitution: 0, friction: 0.8},
+      {mass: 0, restitution: 0.5, friction: 0.5},
       this.scene
     );
     const material = new BABYLON.StandardMaterial('groundMat', this.scene);
     material.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
     this.ground.material = material;
+    this.sceneObjects.push(this.ground);
   }
 
   addSphere(pos) {
     this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, this.scene);
-    // this.sphere.position.y = 30;
     this.sphere.position = pos;
     this.lastY = this.sphere.position.y;
     this.sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
       this.sphere,
       BABYLON.PhysicsImpostor.SphereImpostor,
-      {mass: 3, restitution: 0, friction: 1},
+      {mass: 2, restitution: 0, friction: 1},
       this.scene
     );
-    // this.camera.attachControl(this.sphere);
+    this.sphere.physicsImpostor.physicsBody.allowSleep = false;
     this.camera.setTarget(this.sphere.position);
   }
 
-  addBox(size, pos, mass) {
+  addBox(size, pos, mass, friction, restitution) {
     const box = BABYLON.MeshBuilder.CreateBox('box', {depth: size.x, width: size.y, height: size.z});
     box.position = pos;
     box.impostor = new BABYLON.PhysicsImpostor(
       box,
       BABYLON.PhysicsImpostor.BoxImpostor,
-      {mass, restitution: 0, friction: 0.8},
+      {mass, restitution, friction},
       this.scene
     );
+    this.sceneObjects.push(box);
   }
 
   addGoalBox(pos) {
-    const box = BABYLON.MeshBuilder.CreateBox('box', {depth: 1, width: 1, height: 1, color: 0x000000});
-    box.position = pos;
-    box.impostor = new BABYLON.PhysicsImpostor(
-      box,
+    this.goalBox = BABYLON.MeshBuilder.CreateBox('goalBox', {depth: 1, width: 1, height: 1});
+    this.goalBox.position = pos;
+    this.goalBox.impostor = new BABYLON.PhysicsImpostor(
+      this.goalBox,
       BABYLON.PhysicsImpostor.BoxImpostor,
       {mass: 1, restitution: 0, friction: 0.8},
       this.scene
     );
-    const material = new BABYLON.StandardMaterial('boxMat', this.scene);
+    const material = new BABYLON.StandardMaterial('goalBoxMat', this.scene);
     material.diffuseColor = new BABYLON.Color3(0, 0, 0);
-    box.material = material;
+    this.goalBox.material = material;
   }
 
-  level1() {
-    // const level1StartPos = new BABYLON.Vector3(0, 30, -40);
-    // this.levelStartPos.push(level1StartPos);
-    // const groundMat1 = new BABYLON.StandardMaterial('groundMat1', this.scene);
-    // groundMat1.diffuseTexture = new BABYLON.Texture('assets/img/level1/gridPattern1.jpg', this.scene);
-    // this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', 'assets/img/level1/gridPattern1.jpg', 100, 100, 250, 0, 10, this.scene, false, () => {
-    //   this.ground.material = groundMat1;
-    //   this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-    //     this.ground,
-    //     BABYLON.PhysicsImpostor.HeightmapImpostor,
-    //     {mass: 0, restitution: 0.1, friction: 1},
-    //     this.scene
-    //   );
-    this.addGround();
-    this.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 2, -20), 1);
-    this.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 5, -20), 1);
-    this.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 8, -20), 1);
-    this.addGoalBox(new BABYLON.Vector3(0, 10, -20));
-    this.addSphere(new BABYLON.Vector3(0, 30, -40));
-    // });
+  checkGoalBoxCollision() {
+    const loseThreshold = 6;
+    let dontBreak = true;
+
+    if (this.goalBox.intersectsMesh(this.sphere, true)) {
+      alert('You got the box. You win!');
+      this.level++;
+      dontBreak = false;
+      this.engine.stopRenderLoop();
+      this.init(this.container);
+      return dontBreak;
+    }
+
+    if (this.goalBox.impostor.physicsBody.sleepState === CANNON.Body.SLEEPING) {
+      this.goalBoxSettled = true;
+      return dontBreak;
+    }
+    if (this.goalBoxSettled) {
+      this.sceneObjects.forEach(object => {
+        if (this.goalBox.intersectsMesh(object, true)) {
+          if (Math.abs(this.goalBox.impostor.physicsBody.velocity.x) > loseThreshold ||
+              Math.abs(this.goalBox.impostor.physicsBody.velocity.y) > loseThreshold ||
+              Math.abs(this.goalBox.impostor.physicsBody.velocity.z) > loseThreshold) {
+            console.log(this.goalBox.impostor.physicsBody.velocity);
+            console.log('you lose');
+            dontBreak = false;
+            this.engine.stopRenderLoop();
+            if (confirm('You dropped the box, you lose. Try again?')) {
+              this.init(this.container);
+            }
+            return;
+          }
+        }
+      });
+    }
+    return dontBreak;
   }
 }
