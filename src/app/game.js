@@ -32,6 +32,10 @@ export default class Game {
         this.speedX = this.speed;
       }
 
+      if (e.keyCode === 32) { // Spacebar
+        this.jump();
+      }
+
       if (e.keyCode === 78) { // N
         let pos = new BABYLON.Vector3.Zero();
         switch (this.level) {
@@ -108,7 +112,6 @@ export default class Game {
   }
 
   init(container) {
-    console.log('level ' + this.level + ' started');
     this.speedX = 0;
     this.speedY = 0;
     this.speedZ = 0;
@@ -146,6 +149,7 @@ export default class Game {
       return false;
     }
     this.levels[this.level - 1].start();
+    console.log('level ' + this.level + ' started');
     return true;
   }
 
@@ -175,7 +179,8 @@ export default class Game {
   }
 
   addSphere(pos) {
-    this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, this.scene);
+    this.sphereDiameter = 2;
+    this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, this.sphereDiameter, this.scene);
     this.sphere.position = pos;
     this.lastY = this.sphere.position.y;
     this.sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
@@ -215,7 +220,7 @@ export default class Game {
   }
 
   checkGoalBoxCollision() {
-    const loseThreshold = 6;
+    const loseThreshold = 2;
     let dontBreak = true;
 
     if (this.goalBox.intersectsMesh(this.sphere, true)) {
@@ -234,10 +239,8 @@ export default class Game {
     if (this.goalBoxSettled) {
       this.sceneObjects.forEach(object => {
         if (this.goalBox.intersectsMesh(object, true)) {
-          if (Math.abs(this.goalBox.impostor.physicsBody.velocity.x) > loseThreshold ||
-              Math.abs(this.goalBox.impostor.physicsBody.velocity.y) > loseThreshold ||
-              Math.abs(this.goalBox.impostor.physicsBody.velocity.z) > loseThreshold) {
-            console.log(this.goalBox.impostor.physicsBody.velocity);
+          if (Math.abs(this.goalBox.impostor.physicsBody.velocity.y) > loseThreshold) {
+            // console.log(this.goalBox.impostor.physicsBody.velocity);
             console.log('you lose');
             dontBreak = false;
             this.engine.stopRenderLoop();
@@ -250,5 +253,15 @@ export default class Game {
       });
     }
     return dontBreak;
+  }
+
+  jump() {
+    const jumpForce = 15;
+    // console.log(this.sphere.position.y);
+    this.sceneObjects.forEach(object => {
+      if (this.sphere.intersectsMesh(object, true)) {
+        this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, jumpForce, 0), this.sphere.getAbsolutePosition());
+      }
+    });
   }
 }
