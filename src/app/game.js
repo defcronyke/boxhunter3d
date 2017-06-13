@@ -170,12 +170,15 @@ export default class Game {
   addGround(size, restitution, friction, texture, heightmap, heightmapHeight) {
     if (heightmap && heightmapHeight) {
       this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, size.z, 0, heightmapHeight, this.scene, false);
-      // this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-      //   this.ground,
-      //   BABYLON.PhysicsImpostor.HeightmapImpostor,
-      //   {mass: 0, restitution, friction},
-      //   this.scene
-      // );
+      const material = new BABYLON.StandardMaterial('groundMat', this.scene);
+      material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
+      this.ground.material = material;
+      this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+        this.ground,
+        BABYLON.PhysicsImpostor.HeightmapImpostor,
+        {mass: 0, restitution, friction},
+        this.scene
+      );
     } else {
       this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
       this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
@@ -184,15 +187,16 @@ export default class Game {
         {mass: 0, restitution, friction},
         this.scene
       );
-    }
-    const material = new BABYLON.StandardMaterial('groundMat', this.scene);
+      const material = new BABYLON.StandardMaterial('groundMat', this.scene);
 
-    if (texture) {
-      material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
-    } else {
-      material.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
+      if (texture) {
+        material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
+      } else {
+        material.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
+      }
+      this.ground.material = material;
     }
-    this.ground.material = material;
+
     this.sceneObjects.push(this.ground);
   }
 
