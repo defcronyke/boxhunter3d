@@ -37,16 +37,16 @@ export default class Game {
         this.jump();
       }
 
-      if (e.keyCode === 78) { // N
-        let pos = new BABYLON.Vector3.Zero();
-        switch (this.level) {
-          case 1:
-            pos = new BABYLON.Vector3(0, 10, -40);
-            break;
-          default:
-        }
-        this.addSphere(pos);
-      }
+      // if (e.keyCode === 78) { // N
+      //   let pos = new BABYLON.Vector3.Zero();
+      //   switch (this.level) {
+      //     case 1:
+      //       pos = new BABYLON.Vector3(0, 10, -40);
+      //       break;
+      //     default:
+      //   }
+      //   this.addSphere(pos);
+      // }
     });
 
     window.addEventListener('keyup', e => {
@@ -98,6 +98,13 @@ export default class Game {
         this.camera.position.y = this.sphere.position.y + 30;
         this.camera.position.z = this.sphere.position.z - 50;
         this.camera.setTarget(this.sphere.position);
+
+        if (this.sphere.position.y < -10) {
+          this.engine.stopRenderLoop();
+          if (confirm('You fell off the edge, you lose. Try again?')) {
+            this.init(this.container);
+          }
+        }
 
         if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
           return;
@@ -300,10 +307,14 @@ export default class Game {
 
   jump() {
     const jumpForce = 10;
-    // console.log(this.sphere.position.y);
+    // console.log(this.sphere.physicsImpostor.physicsBody.velocity.y);
     this.sceneObjects.forEach(object => {
       if (this.sphere.intersectsMesh(object, true)) {
-        this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, jumpForce, 0), this.sphere.getAbsolutePosition());
+        if (this.sphere.physicsImpostor.physicsBody.velocity.y > jumpForce) {
+          this.sphere.physicsImpostor.physicsBody.velocity.y = 0;
+        } else if (this.sphere.physicsImpostor.physicsBody.velocity.y <= jumpForce / 2) {
+          this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, jumpForce, 0), this.sphere.getAbsolutePosition());
+        }
       }
     });
   }
