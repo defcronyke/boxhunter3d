@@ -11,6 +11,6 @@ export default class Level1 {
     this.game.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 5, -20), 0.25, 0.5, 0.5, '../../assets/img/level1/crate.png');
     this.game.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 8, -20), 0.25, 0.5, 0.5, '../../assets/img/level1/crate.png');
     this.game.addGoalBox(new BABYLON.Vector3(0, 10, -20));
-    this.game.addSphere(new BABYLON.Vector3(0, 10, -40), 2, 2, 0, 0.5);
+    this.game.addSphere(new BABYLON.Vector3(0, 10, -40), 2, 2, 0, 0.5, '../../assets/img/level1/ball.png');
   }
 }
