@@ -2,6 +2,7 @@
 import BABYLON from 'babylonjs/dist/preview release/babylon.max.js';
 import CANNON from 'cannon';
 import Level1 from './levels/level1';
+import Level2 from './levels/level2';
 
 export default class Game {
   constructor(container) {
@@ -106,7 +107,8 @@ export default class Game {
     };
 
     this.levels = [
-      new Level1(this)
+      new Level1(this),
+      new Level2(this)
     ];
 
     this.init(container);
@@ -232,7 +234,7 @@ export default class Game {
   }
 
   checkGoalBoxCollision() {
-    const loseThreshold = 10;
+    const loseThreshold = 12;
     let dontBreak = true;
 
     if (this.goalBox.intersectsMesh(this.sphere, true)) {
