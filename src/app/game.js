@@ -169,16 +169,18 @@ export default class Game {
 
   addGround(size, restitution, friction, texture, heightmap, heightmapHeight) {
     if (heightmap && heightmapHeight) {
-      this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, size.z, 0, heightmapHeight, this.scene, false);
       const material = new BABYLON.StandardMaterial('groundMat', this.scene);
       material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
-      this.ground.material = material;
-      this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-        this.ground,
-        BABYLON.PhysicsImpostor.HeightmapImpostor,
-        {mass: 0, restitution, friction},
-        this.scene
-      );
+      this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, size.z, 0, heightmapHeight, this.scene, false, mesh => {
+        mesh.material = material;
+        mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+          mesh,
+          BABYLON.PhysicsImpostor.HeightmapImpostor,
+          {mass: 0, restitution, friction},
+          this.scene
+        );
+        this.sceneObjects.push(mesh);
+      });
     } else {
       this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
       this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
@@ -195,9 +197,8 @@ export default class Game {
         material.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);
       }
       this.ground.material = material;
+      this.sceneObjects.push(this.ground);
     }
-
-    this.sceneObjects.push(this.ground);
   }
 
   addSphere(pos, diameter, mass, restitution, friction, texture) {

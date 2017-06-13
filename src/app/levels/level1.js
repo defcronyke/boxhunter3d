@@ -6,7 +6,7 @@ export default class Level1 {
   }
 
   start() {
-    this.game.addGround(new BABYLON.Vector3(100, 100, 2), 0, 0.5, '../../assets/img/level1/floor.png', '../../assets/img/level1/floor.png', 2);
+    this.game.addGround(new BABYLON.Vector3(100, 100, 2), 0, 0.5, '../../assets/img/level1/gridPattern1.jpg', '../../assets/img/level1/gridPattern1.jpg', 4);
     this.game.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 2, -20), 0.25, 0.5, 0.5, '../../assets/img/level1/crate.png');
     this.game.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 5, -20), 0.25, 0.5, 0.5, '../../assets/img/level1/crate.png');
     this.game.addBox(new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 8, -20), 0.25, 0.5, 0.5, '../../assets/img/level1/crate.png');
