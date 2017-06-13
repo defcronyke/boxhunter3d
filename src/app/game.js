@@ -11,7 +11,7 @@ export default class Game {
     console.log('game started');
 
     window.addEventListener('keydown', e => {
-      // console.log('keyCode: ', e.keyCode);
+      console.log('keyCode: ', e.keyCode);
       this.speed = 1;
       this.speedX = 0;
       this.speedY = 0;
@@ -35,6 +35,22 @@ export default class Game {
 
       if (e.keyCode === 32) { // Spacebar
         this.jump();
+      }
+
+      if (e.keyCode === 221) { // ]
+        this.engine.stopRenderLoop();
+        this.level++;
+        this.init(this.container);
+      }
+
+      if (e.keyCode === 219) { // [
+        this.engine.stopRenderLoop();
+        if (this.level === 1) {
+          this.level = this.levels.length;
+        } else {
+          this.level--;
+        }
+        this.init(this.container);
       }
 
       // if (e.keyCode === 78) { // N
@@ -157,6 +173,9 @@ export default class Game {
 
     if (this.level > this.levels.length) {
       alert('Congratulations, you beat the game!');
+      this.engine.stopRenderLoop();
+      this.level = 1;
+      this.init(this.container);
       return false;
     }
     this.levels[this.level - 1].start();
