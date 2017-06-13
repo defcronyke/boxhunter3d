@@ -187,17 +187,23 @@ export default class Game {
     this.sceneObjects.push(this.ground);
   }
 
-  addSphere(pos) {
-    this.sphereDiameter = 2;
+  addSphere(pos, diameter, mass, restitution, friction, texture) {
+    // this.sphereDiameter = 2;
+    this.sphereDiameter = diameter;
     this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, this.sphereDiameter, this.scene);
     this.sphere.position = pos;
     this.lastY = this.sphere.position.y;
     this.sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
       this.sphere,
       BABYLON.PhysicsImpostor.SphereImpostor,
-      {mass: 2, restitution: 0, friction: 1},
+      {mass, restitution, friction},
       this.scene
     );
+    if (texture) {
+      const material = new BABYLON.StandardMaterial('sphereMat', this.scene);
+      material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
+      this.sphere.material = material;
+    }
     this.sphere.physicsImpostor.physicsBody.allowSleep = false;
     this.camera.setTarget(this.sphere.position);
   }
