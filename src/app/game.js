@@ -167,15 +167,24 @@ export default class Game {
     this.light.intensity = 0.5;
   }
 
-  addGround(size, restitution, friction, texture) {
-    this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
-    // this.ground.checkCollisions = true;
-    this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-      this.ground,
-      BABYLON.PhysicsImpostor.BoxImpostor,
-      {mass: 0, restitution, friction},
-      this.scene
-    );
+  addGround(size, restitution, friction, texture, heightmap, heightmapHeight) {
+    if (heightmap && heightmapHeight) {
+      this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, size.z, 0, heightmapHeight, this.scene, false);
+      // this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+      //   this.ground,
+      //   BABYLON.PhysicsImpostor.HeightmapImpostor,
+      //   {mass: 0, restitution, friction},
+      //   this.scene
+      // );
+    } else {
+      this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
+      this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+        this.ground,
+        BABYLON.PhysicsImpostor.BoxImpostor,
+        {mass: 0, restitution, friction},
+        this.scene
+      );
+    }
     const material = new BABYLON.StandardMaterial('groundMat', this.scene);
 
     if (texture) {
