@@ -67,7 +67,8 @@ export default class Game {
     });
 
     window.addEventListener('resize', () => {
-      this.engine.resize();
+      // this.engine.resize();
+      this.engine.setSize(window.innerWidth, window.innerHeight);
     });
 
     this.step = () => {
@@ -128,6 +129,7 @@ export default class Game {
   initGraphics(container) {
     this.container = container;
     this.engine = new BABYLON.Engine(this.container, true);
+    this.engine.setSize(window.innerWidth, window.innerHeight);
   }
 
   initPhysics() {
