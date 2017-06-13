@@ -95,8 +95,8 @@ export default class Game {
         this.lastY = this.sphere.position.y;
 
         this.camera.position.x = this.sphere.position.x;
-        this.camera.position.y = this.sphere.position.y + 25;
-        this.camera.position.z = this.sphere.position.z - 30;
+        this.camera.position.y = this.sphere.position.y + 30;
+        this.camera.position.z = this.sphere.position.z - 50;
         this.camera.setTarget(this.sphere.position);
 
         if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
@@ -158,7 +158,7 @@ export default class Game {
   }
 
   addCamera() {
-    this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 25, -30), this.scene);
+    this.camera = new BABYLON.FreeCamera('camera1', new BABYLON.Vector3(0, 30, -50), this.scene);
     this.camera.attachControl(this.container);
   }
 
@@ -167,11 +167,13 @@ export default class Game {
     this.light.intensity = 0.5;
   }
 
-  addGround(size, restitution, friction, texture, heightmap, heightmapHeight) {
+  addGround(size, restitution, friction, texture, heightmap, heightmapHeight, callback) {
     if (heightmap && heightmapHeight) {
       const material = new BABYLON.StandardMaterial('groundMat', this.scene);
       material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
-      this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, size.z, 0, heightmapHeight, this.scene, false, mesh => {
+      // console.log(material.specularColor);
+      material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+      this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, 250, 0, heightmapHeight, this.scene, false, mesh => {
         mesh.material = material;
         mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
           mesh,
@@ -180,6 +182,7 @@ export default class Game {
           this.scene
         );
         this.sceneObjects.push(mesh);
+        callback();
       });
     } else {
       this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
@@ -257,44 +260,46 @@ export default class Game {
     const loseThreshold = 12;
     let dontBreak = true;
 
-    if (this.goalBox.intersectsMesh(this.sphere, true)) {
-      alert('You got the box. You win!');
-      this.level++;
-      dontBreak = false;
-      this.engine.stopRenderLoop();
-      this.init(this.container);
-      return dontBreak;
-    }
+    if (this.goalBox) {
+      if (this.sphere && this.goalBox.intersectsMesh(this.sphere, true)) {
+        alert('You got the box. You win!');
+        this.level++;
+        dontBreak = false;
+        this.engine.stopRenderLoop();
+        this.init(this.container);
+        return dontBreak;
+      }
 
-    if (this.goalBox.impostor.physicsBody.sleepState === CANNON.Body.SLEEPING) {
-      this.goalBoxSettled = true;
-      return dontBreak;
-    }
-    if (this.goalBoxSettled) {
-      this.sceneObjects.forEach(object => {
-        if (this.goalBox.intersectsMesh(object, true)) {
-          const vel = Math.abs(this.goalBox.impostor.physicsBody.velocity.x) +
-                      Math.abs(this.goalBox.impostor.physicsBody.velocity.y) +
-                      Math.abs(this.goalBox.impostor.physicsBody.velocity.z);
-          console.log('goal box velocity:', vel);
-          if (vel > loseThreshold) {
-            // console.log(this.goalBox.impostor.physicsBody.velocity);
-            console.log('you lose');
-            dontBreak = false;
-            this.engine.stopRenderLoop();
-            if (confirm('You dropped the box, you lose. Try again?')) {
-              this.init(this.container);
+      if (this.goalBox.impostor.physicsBody.sleepState === CANNON.Body.SLEEPING) {
+        this.goalBoxSettled = true;
+        return dontBreak;
+      }
+      if (this.goalBoxSettled) {
+        this.sceneObjects.forEach(object => {
+          if (this.goalBox.intersectsMesh(object, true)) {
+            const vel = Math.abs(this.goalBox.impostor.physicsBody.velocity.x) +
+                        Math.abs(this.goalBox.impostor.physicsBody.velocity.y) +
+                        Math.abs(this.goalBox.impostor.physicsBody.velocity.z);
+            // console.log('goal box velocity:', vel);
+            if (vel > loseThreshold) {
+              // console.log(this.goalBox.impostor.physicsBody.velocity);
+              console.log('you lose');
+              dontBreak = false;
+              this.engine.stopRenderLoop();
+              if (confirm('You dropped the box, you lose. Try again?')) {
+                this.init(this.container);
+              }
+              return;
             }
-            return;
           }
-        }
-      });
+        });
+      }
     }
     return dontBreak;
   }
 
   jump() {
-    const jumpForce = 15;
+    const jumpForce = 10;
     // console.log(this.sphere.position.y);
     this.sceneObjects.forEach(object => {
       if (this.sphere.intersectsMesh(object, true)) {
