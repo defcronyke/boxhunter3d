@@ -225,7 +225,7 @@ export default class Game {
   }
 
   checkGoalBoxCollision() {
-    const loseThreshold = 2;
+    const loseThreshold = 1.9;
     let dontBreak = true;
 
     if (this.goalBox.intersectsMesh(this.sphere, true)) {
@@ -244,7 +244,9 @@ export default class Game {
     if (this.goalBoxSettled) {
       this.sceneObjects.forEach(object => {
         if (this.goalBox.intersectsMesh(object, true)) {
-          if (Math.abs(this.goalBox.impostor.physicsBody.velocity.y) > loseThreshold) {
+          if (Math.abs(this.goalBox.impostor.physicsBody.velocity.x) > loseThreshold ||
+            Math.abs(this.goalBox.impostor.physicsBody.velocity.y) > loseThreshold ||
+            Math.abs(this.goalBox.impostor.physicsBody.velocity.z) > loseThreshold) {
             // console.log(this.goalBox.impostor.physicsBody.velocity);
             console.log('you lose');
             dontBreak = false;
