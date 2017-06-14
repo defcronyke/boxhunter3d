@@ -7,7 +7,7 @@ import Level3 from './levels/level3';
 
 export default class Game {
   constructor(container) {
-    this.level = 3;
+    this.level = 1;
     this.container = container;
     console.log('game started');
 
