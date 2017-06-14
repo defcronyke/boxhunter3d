@@ -4,6 +4,7 @@ import CANNON from 'cannon';
 import Level1 from './levels/level1';
 import Level2 from './levels/level2';
 import Level3 from './levels/level3';
+import Level4 from './levels/level4';
 
 export default class Game {
   constructor(container) {
@@ -127,7 +128,8 @@ export default class Game {
     this.levels = [
       new Level1(this),
       new Level2(this),
-      new Level3(this)
+      new Level3(this),
+      new Level4(this)
     ];
 
     this.init(container);
@@ -281,7 +283,7 @@ export default class Game {
 
   checkGoalBoxCollision() {
     const loseThreshold = 12;
-    const loseThreshold2 = 4;
+    const loseThreshold2 = 5;
     let dontBreak = true;
 
     if (this.goalBox) {
