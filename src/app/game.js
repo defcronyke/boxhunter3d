@@ -89,7 +89,7 @@ export default class Game {
     };
 
     this.move = () => {
-      this.drag = 0.98;
+      this.drag = 0.99;
       if (this.sphere && this.camera) {
         if (this.sphere.position.y >= this.lastY) {
           const angVel = this.sphere.impostor.getAngularVelocity();
@@ -115,6 +115,11 @@ export default class Game {
         if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
           return;
         }
+
+        if (!this.goalBoxSettled) {
+          return;
+        }
+
         this.sphere.impostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
       }
     };
@@ -268,6 +273,7 @@ export default class Game {
       {mass: 1, restitution: 0, friction: 0.8},
       this.scene
     );
+    this.goalBox.impostor.physicsBody.sleepSpeedLimit = 1;
     const material = new BABYLON.StandardMaterial('goalBoxMat', this.scene);
     material.diffuseColor = new BABYLON.Color3(0, 0, 0);
     this.goalBox.material = material;
@@ -275,7 +281,7 @@ export default class Game {
 
   checkGoalBoxCollision() {
     const loseThreshold = 12;
-    const loseThreshold2 = 2;
+    const loseThreshold2 = 4;
     let dontBreak = true;
 
     if (this.goalBox) {
@@ -290,7 +296,7 @@ export default class Game {
 
       if (this.goalBox.impostor.physicsBody.sleepState === CANNON.Body.SLEEPING) {
         this.goalBoxSettled = true;
-        return dontBreak;
+        // return dontBreak;
       }
       if (this.goalBoxSettled) {
         this.sceneObjects.forEach(object => {
@@ -301,9 +307,9 @@ export default class Game {
             const vel2 = Math.abs(object.impostor.physicsBody.velocity.x) +
                          Math.abs(object.impostor.physicsBody.velocity.y) +
                          Math.abs(object.impostor.physicsBody.velocity.z);
-            console.log('obj velocity:', vel2);
+            // console.log('obj velocity:', vel2);
             if (vel > loseThreshold ||
-                vel2 > loseThreshold2) {
+            (vel2 > loseThreshold2 && this.goalBox.position.y < object.position.y)) {
               // console.log(this.goalBox.impostor.physicsBody.velocity);
               console.log('you lose');
               dontBreak = false;
