@@ -6,12 +6,12 @@ import Level2 from './levels/level2';
 
 export default class Game {
   constructor(container) {
-    this.level = 1;
+    this.level = 2;
     this.container = container;
     console.log('game started');
 
     window.addEventListener('keydown', e => {
-      console.log('keyCode: ', e.keyCode);
+      // console.log('keyCode: ', e.keyCode);
       this.speed = 1;
       this.speedX = 0;
       this.speedY = 0;
@@ -52,17 +52,6 @@ export default class Game {
         }
         this.init(this.container);
       }
-
-      // if (e.keyCode === 78) { // N
-      //   let pos = new BABYLON.Vector3.Zero();
-      //   switch (this.level) {
-      //     case 1:
-      //       pos = new BABYLON.Vector3(0, 10, -40);
-      //       break;
-      //     default:
-      //   }
-      //   this.addSphere(pos);
-      // }
     });
 
     window.addEventListener('keyup', e => {
@@ -288,7 +277,7 @@ export default class Game {
 
     if (this.goalBox) {
       if (this.sphere && this.goalBox.intersectsMesh(this.sphere, true)) {
-        alert('You got the box. You win!');
+        alert('You got the box. You beat the level!');
         this.level++;
         dontBreak = false;
         this.engine.stopRenderLoop();
