@@ -3,10 +3,11 @@ import BABYLON from 'babylonjs/dist/preview release/babylon.max.js';
 import CANNON from 'cannon';
 import Level1 from './levels/level1';
 import Level2 from './levels/level2';
+import Level3 from './levels/level3';
 
 export default class Game {
   constructor(container) {
-    this.level = 2;
+    this.level = 3;
     this.container = container;
     console.log('game started');
 
@@ -91,11 +92,11 @@ export default class Game {
       this.drag = 0.98;
       if (this.sphere && this.camera) {
         if (this.sphere.position.y >= this.lastY) {
-          const angVel = this.sphere.physicsImpostor.getAngularVelocity();
+          const angVel = this.sphere.impostor.getAngularVelocity();
           angVel.x *= this.drag;
           angVel.y *= this.drag;
           angVel.z *= this.drag;
-          this.sphere.physicsImpostor.setAngularVelocity(angVel);
+          this.sphere.impostor.setAngularVelocity(angVel);
         }
         this.lastY = this.sphere.position.y;
 
@@ -114,13 +115,14 @@ export default class Game {
         if ((this.speedX === 0) && (this.speedY === 0) && (this.speedZ === 0)) {
           return;
         }
-        this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
+        this.sphere.impostor.applyImpulse(new BABYLON.Vector3(this.speedX, this.speedY, this.speedZ), this.sphere.getAbsolutePosition());
       }
     };
 
     this.levels = [
       new Level1(this),
-      new Level2(this)
+      new Level2(this),
+      new Level3(this)
     ];
 
     this.init(container);
@@ -190,7 +192,7 @@ export default class Game {
       material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
       this.ground = BABYLON.Mesh.CreateGroundFromHeightMap('ground1', heightmap, size.x, size.y, 250, 0, heightmapHeight, this.scene, false, mesh => {
         mesh.material = material;
-        mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+        mesh.impostor = new BABYLON.PhysicsImpostor(
           mesh,
           BABYLON.PhysicsImpostor.HeightmapImpostor,
           {mass: 0, restitution, friction},
@@ -201,7 +203,7 @@ export default class Game {
       });
     } else {
       this.ground = BABYLON.Mesh.CreateGround('ground1', size.x, size.y, size.z, this.scene);
-      this.ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+      this.ground.impostor = new BABYLON.PhysicsImpostor(
         this.ground,
         BABYLON.PhysicsImpostor.BoxImpostor,
         {mass: 0, restitution, friction},
@@ -225,7 +227,7 @@ export default class Game {
     this.sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, this.sphereDiameter, this.scene);
     this.sphere.position = pos;
     this.lastY = this.sphere.position.y;
-    this.sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
+    this.sphere.impostor = new BABYLON.PhysicsImpostor(
       this.sphere,
       BABYLON.PhysicsImpostor.SphereImpostor,
       {mass, restitution, friction},
@@ -236,7 +238,7 @@ export default class Game {
       material.diffuseTexture = new BABYLON.Texture(texture, this.scene);
       this.sphere.material = material;
     }
-    this.sphere.physicsImpostor.physicsBody.allowSleep = false;
+    this.sphere.impostor.physicsBody.allowSleep = false;
     this.camera.setTarget(this.sphere.position);
   }
 
@@ -273,6 +275,7 @@ export default class Game {
 
   checkGoalBoxCollision() {
     const loseThreshold = 12;
+    const loseThreshold2 = 2;
     let dontBreak = true;
 
     if (this.goalBox) {
@@ -295,13 +298,17 @@ export default class Game {
             const vel = Math.abs(this.goalBox.impostor.physicsBody.velocity.x) +
                         Math.abs(this.goalBox.impostor.physicsBody.velocity.y) +
                         Math.abs(this.goalBox.impostor.physicsBody.velocity.z);
-            // console.log('goal box velocity:', vel);
-            if (vel > loseThreshold) {
+            const vel2 = Math.abs(object.impostor.physicsBody.velocity.x) +
+                         Math.abs(object.impostor.physicsBody.velocity.y) +
+                         Math.abs(object.impostor.physicsBody.velocity.z);
+            console.log('obj velocity:', vel2);
+            if (vel > loseThreshold ||
+                vel2 > loseThreshold2) {
               // console.log(this.goalBox.impostor.physicsBody.velocity);
               console.log('you lose');
               dontBreak = false;
               this.engine.stopRenderLoop();
-              if (confirm('You dropped the box, you lose. Try again?')) {
+              if (confirm('The box broke, you lose. Try again?')) {
                 this.init(this.container);
               }
               return;
@@ -315,13 +322,13 @@ export default class Game {
 
   jump() {
     const jumpForce = 10;
-    // console.log(this.sphere.physicsImpostor.physicsBody.velocity.y);
+    // console.log(this.sphere.impostor.physicsBody.velocity.y);
     this.sceneObjects.forEach(object => {
       if (this.sphere.intersectsMesh(object, true)) {
-        if (this.sphere.physicsImpostor.physicsBody.velocity.y > jumpForce) {
-          this.sphere.physicsImpostor.physicsBody.velocity.y = 0;
-        } else if (this.sphere.physicsImpostor.physicsBody.velocity.y <= jumpForce / 2) {
-          this.sphere.physicsImpostor.applyImpulse(new BABYLON.Vector3(0, jumpForce, 0), this.sphere.getAbsolutePosition());
+        if (this.sphere.impostor.physicsBody.velocity.y > jumpForce) {
+          this.sphere.impostor.physicsBody.velocity.y = 0;
+        } else if (this.sphere.impostor.physicsBody.velocity.y <= jumpForce / 2) {
+          this.sphere.impostor.applyImpulse(new BABYLON.Vector3(0, jumpForce, 0), this.sphere.getAbsolutePosition());
         }
       }
     });
